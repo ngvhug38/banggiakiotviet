@@ -1,1 +1,148 @@
+backend:
+  name: git-gateway
+  branch: main
 
+# Sau khi lưu trên /admin, Decap CMS sẽ tự commit thẳng vào GitHub, Netlify tự build lại.
+local_backend: false
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "gia"
+    label: "💰 Bảng giá & khuyến mãi"
+    files:
+      - name: "pricing"
+        label: "Cấu hình giá (data/pricing.json)"
+        file: "data/pricing.json"
+        fields:
+          - label: "Gói Hỗ trợ"
+            name: "goiHoTro"
+            widget: "object"
+            collapsed: true
+            fields:
+              - {label: "Giá/tháng (chi nhánh 1)", name: "giaThangChiNhanh1", widget: "number", value_type: "int"}
+              - label: "Các mức năm (1/2/3/5)"
+                name: "cacMucNam"
+                widget: "list"
+                summary: "{{soNam}} năm — {{giaTron}}đ"
+                fields:
+                  - {label: "Số năm", name: "soNam", widget: "number", value_type: "int"}
+                  - {label: "Giá trọn gói (đ)", name: "giaTron", widget: "number", value_type: "int"}
+                  - {label: "Hóa đơn điện tử tặng/năm", name: "hoaDonTang", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tiền, đ)", name: "voucherToiDaTien", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tháng) — để trống nếu không áp dụng", name: "voucherToiDaThang", widget: "number", value_type: "int", required: false}
+
+          - label: "Gói Chuyên Nghiệp"
+            name: "goiChuyenNghiep"
+            widget: "object"
+            collapsed: true
+            fields:
+              - {label: "Giá/tháng (chi nhánh 1)", name: "giaThangChiNhanh1", widget: "number", value_type: "int"}
+              - {label: "Giá/tháng (chi nhánh 2 trở lên)", name: "giaThangChiNhanh2", widget: "number", value_type: "int"}
+              - label: "Giá mua thêm kho/tháng theo số năm"
+                name: "giaThangMuaThemKho"
+                widget: "object"
+                collapsed: true
+                fields:
+                  - {label: "Gói 1 năm", name: "nam1", widget: "number", value_type: "int"}
+                  - {label: "Gói 2 năm", name: "nam2", widget: "number", value_type: "int"}
+                  - {label: "Gói 3 năm", name: "nam3", widget: "number", value_type: "int"}
+                  - {label: "Gói 5 năm", name: "nam5", widget: "number", value_type: "int"}
+              - label: "Các mức năm (1/2/3/5)"
+                name: "cacMucNam"
+                widget: "list"
+                summary: "{{soNam}} năm — CN1: {{giaChiNhanh1}}đ"
+                fields:
+                  - {label: "Số năm", name: "soNam", widget: "number", value_type: "int"}
+                  - {label: "Giá chi nhánh 1 (đ)", name: "giaChiNhanh1", widget: "number", value_type: "int"}
+                  - {label: "Giá chi nhánh 2 trở lên (đ)", name: "giaChiNhanh2", widget: "number", value_type: "int"}
+                  - {label: "Hóa đơn điện tử tặng/năm", name: "hoaDonTang", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tiền, đ)", name: "voucherToiDaTien", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tháng)", name: "voucherToiDaThang", widget: "number", value_type: "int", required: false}
+
+          - label: "Gói Cao Cấp"
+            name: "goiCaoCap"
+            widget: "object"
+            collapsed: true
+            fields:
+              - {label: "Giá/tháng (chi nhánh 1)", name: "giaThangChiNhanh1", widget: "number", value_type: "int"}
+              - {label: "Giá/tháng (chi nhánh 2 trở lên)", name: "giaThangChiNhanh2", widget: "number", value_type: "int"}
+              - label: "Giá mua thêm kho/tháng theo số năm"
+                name: "giaThangMuaThemKho"
+                widget: "object"
+                collapsed: true
+                fields:
+                  - {label: "Gói 1 năm", name: "nam1", widget: "number", value_type: "int"}
+                  - {label: "Gói 2 năm", name: "nam2", widget: "number", value_type: "int"}
+                  - {label: "Gói 3 năm", name: "nam3", widget: "number", value_type: "int"}
+                  - {label: "Gói 5 năm", name: "nam5", widget: "number", value_type: "int"}
+              - label: "Các mức năm (1/2/3/5)"
+                name: "cacMucNam"
+                widget: "list"
+                summary: "{{soNam}} năm — CN1: {{giaChiNhanh1}}đ"
+                fields:
+                  - {label: "Số năm", name: "soNam", widget: "number", value_type: "int"}
+                  - {label: "Giá chi nhánh 1 (đ)", name: "giaChiNhanh1", widget: "number", value_type: "int"}
+                  - {label: "Giá chi nhánh 2 trở lên (đ)", name: "giaChiNhanh2", widget: "number", value_type: "int"}
+                  - {label: "Hóa đơn điện tử tặng/năm", name: "hoaDonTang", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tiền, đ)", name: "voucherToiDaTien", widget: "number", value_type: "int"}
+                  - {label: "Voucher tối đa (tháng)", name: "voucherToiDaThang", widget: "number", value_type: "int", required: false}
+
+          - label: "Hóa đơn điện tử mua thêm"
+            name: "hoaDonDienTuMuaThem"
+            widget: "list"
+            summary: "+{{soLuong}} hóa đơn — {{gia}}đ"
+            fields:
+              - {label: "Số lượng", name: "soLuong", widget: "number", value_type: "int"}
+              - {label: "Giá (đ)", name: "gia", widget: "number", value_type: "int"}
+
+          - label: "Combo máy POS (theo số năm)"
+            name: "comboPos"
+            widget: "object"
+            collapsed: true
+            fields:
+              - label: "Gói 1 năm"
+                name: "nam1"
+                widget: "object"
+                fields:
+                  - {label: "D2 Single", name: "D2 Single", widget: "number", value_type: "int"}
+                  - {label: "D68 Dual", name: "D68 Dual", widget: "number", value_type: "int"}
+                  - {label: "KV88", name: "KV88", widget: "number", value_type: "int"}
+                  - {label: "D10 Pro", name: "D10 Pro", widget: "number", value_type: "int"}
+              - label: "Gói 2 năm"
+                name: "nam2"
+                widget: "object"
+                fields:
+                  - {label: "D2 Single", name: "D2 Single", widget: "number", value_type: "int"}
+                  - {label: "D68 Dual", name: "D68 Dual", widget: "number", value_type: "int"}
+                  - {label: "KV88", name: "KV88", widget: "number", value_type: "int"}
+                  - {label: "D10 Pro", name: "D10 Pro", widget: "number", value_type: "int"}
+              - label: "Gói 3 năm"
+                name: "nam3"
+                widget: "object"
+                fields:
+                  - {label: "D2 Single", name: "D2 Single", widget: "number", value_type: "int"}
+                  - {label: "D68 Dual", name: "D68 Dual", widget: "number", value_type: "int"}
+                  - {label: "KV88", name: "KV88", widget: "number", value_type: "int"}
+                  - {label: "D10 Pro", name: "D10 Pro", widget: "number", value_type: "int"}
+
+          - label: "Combo Chuyên Nghiệp — nhiều chi nhánh (50cn)"
+            name: "comboChiNhanhChuyenNghiep"
+            widget: "list"
+            summary: "1 năm: {{gia1nam}}đ"
+            fields:
+              - {label: "Giá 1 năm", name: "gia1nam", widget: "number", value_type: "int"}
+              - {label: "Giá 2 năm", name: "gia2nam", widget: "number", value_type: "int"}
+              - {label: "Giá 3 năm", name: "gia3nam", widget: "number", value_type: "int"}
+              - {label: "Giá 5 năm", name: "gia5nam", widget: "number", value_type: "int"}
+
+          - label: "Combo Cao Cấp — nhiều chi nhánh (theo 4 mức: 15cn/16-30cn/31-50cn/65cn+)"
+            name: "comboChiNhanhCaoCap"
+            widget: "list"
+            summary: "1 năm: {{gia1nam}}đ"
+            fields:
+              - {label: "Giá 1 năm", name: "gia1nam", widget: "number", value_type: "int"}
+              - {label: "Giá 2 năm", name: "gia2nam", widget: "number", value_type: "int"}
+              - {label: "Giá 3 năm", name: "gia3nam", widget: "number", value_type: "int"}
+              - {label: "Giá 5 năm", name: "gia5nam", widget: "number", value_type: "int"}
