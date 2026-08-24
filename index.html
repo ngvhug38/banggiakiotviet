@@ -654,7 +654,7 @@ section.card h2 .n{
   }#contractAppRoot #previewHeader button{
     width:32px; height:32px; border-radius:50%; background:var(--cf-bg); color:var(--cf-text);
     font-size:15px; padding:0; flex-shrink:0;
-  }#contractAppRoot #previewBody{flex:1; overflow-y:auto; padding:16px; background:#f0f1f3;}#contractAppRoot #previewBody > div{background:#fff; padding:24px 20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1);}#contractAppRoot #previewFooter{padding:12px 18px; border-top:1px solid var(--cf-border); flex-shrink:0;}#contractAppRoot #previewFooter button{background:var(--cf-primary);color:#fff;}
+  }#contractAppRoot #previewBody{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; background:#f0f1f3;}#contractAppRoot #previewBody > div{background:#fff; padding:24px 20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1); max-width:100%; overflow-x:auto;}#contractAppRoot #previewBody table{width:100% !important; max-width:100%; table-layout:fixed; border-collapse:collapse;}#contractAppRoot #previewBody td, #contractAppRoot #previewBody th{word-break:break-word; overflow-wrap:break-word; padding:4px 6px; vertical-align:top;}#contractAppRoot #previewBody img{max-width:100%; height:auto;}#contractAppRoot #previewBody a{word-break:break-all;}#contractAppRoot #previewBody p{margin:0 0 8px; word-break:break-word;}#contractAppRoot #previewFooter{padding:12px 18px; border-top:1px solid var(--cf-border); flex-shrink:0;}#contractAppRoot #previewFooter button{background:var(--cf-primary);color:#fff;}
 
 #contractAppRoot #btnFill{ display:none; }
 @media (min-width:900px){
@@ -3290,7 +3290,6 @@ fetch('data/pricing.json', {cache:'no-store'})
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script>
 (function(){
 // ================= Danh sách chuyên viên tư vấn — vẫn chỉnh sửa được qua CMS (data/nhanvien.json) =================
@@ -3325,13 +3324,29 @@ const GOI_CONFIG = {
 };
 
 // ================= Đường dẫn file mẫu Word thật — đây là nơi giữ toàn bộ nội dung & định dạng hợp đồng =================
-// Muốn sửa câu chữ/điều khoản: sửa trực tiếp trong Word (giữ nguyên các token {{...}}), rồi tải file mới đè vào CMS.
-const TEMPLATE_URLS = {
+// Muốn sửa câu chữ/điều khoản: sửa trực tiếp trong Word (giữ nguyên các token {{...}}), rồi tải file mới qua CMS (/admin) hoặc GitHub.
+// Đường dẫn mặc định (dùng ngay, và làm phương án dự phòng nếu không tải được manifest từ CMS):
+const DEFAULT_TEMPLATE_URLS = {
   chuyen_nghiep: 'data/templates/hopdong-chuyennghiep.docx',
   ho_tro:        'data/templates/hopdong-hotro.docx',
   cao_cap:       'data/templates/hopdong-caocap.docx',
+  phu_luc:       'data/templates/phuluc-chuyennhuong.docx',
 };
-const PHU_LUC_TEMPLATE_URL = 'data/templates/phuluc-chuyennhuong.docx';
+let TEMPLATE_URLS = { ...DEFAULT_TEMPLATE_URLS };
+
+// CMS lưu file tải lên theo đường dẫn do chính nó quản lý (không đảm bảo trùng tên cố định) —
+// nên đọc qua "manifest" này để luôn trỏ đúng tới bản mới nhất, thay vì đoán tên file.
+fetch('data/templates-manifest.json', { cache: "no-store" })
+  .then(r => r.ok ? r.json() : Promise.reject(new Error("Không tải được data/templates-manifest.json")))
+  .then(cfg => {
+    TEMPLATE_URLS = {
+      chuyen_nghiep: cfg.chuyen_nghiep || DEFAULT_TEMPLATE_URLS.chuyen_nghiep,
+      ho_tro:        cfg.ho_tro        || DEFAULT_TEMPLATE_URLS.ho_tro,
+      cao_cap:       cfg.cao_cap       || DEFAULT_TEMPLATE_URLS.cao_cap,
+      phu_luc:       cfg.phu_luc       || DEFAULT_TEMPLATE_URLS.phu_luc,
+    };
+  })
+  .catch(err => { console.warn("Dùng đường dẫn file mẫu mặc định đã nhúng sẵn:", err); });
 
 // ================= Tiện ích định dạng =================
 function fmtNumber(n){ return (!n && n!==0) ? "" : Number(n).toLocaleString("vi-VN"); }
@@ -3479,14 +3494,156 @@ async function buildDocxBlob(data){
   return fillDocxTemplate(TEMPLATE_URLS[data.goi] || TEMPLATE_URLS.chuyen_nghiep, buildMainTokenMap(data, goi));
 }
 async function buildAssignmentDocxBlob(data){
-  return fillDocxTemplate(PHU_LUC_TEMPLATE_URL, buildPhuLucTokenMap(data));
+  return fillDocxTemplate(TEMPLATE_URLS.phu_luc, buildPhuLucTokenMap(data));
 }
 
-// ================= Xem trước — dùng mammoth.js đọc trực tiếp file Word vừa điền, đảm bảo đúng 100% với file tải về =================
+// ================= Xem trước — tự đọc trực tiếp XML của file Word vừa điền (không qua thư viện ngoài),
+// đảm bảo đúng 100% với file tải về vì đây chính là dữ liệu thật, không phải suy đoán của thư viện khác.
+function escapeHtmlPrev(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// Tìm đúng vị trí kết thúc của 1 đoạn văn <w:p>, có tính đến trường hợp bên trong nó
+// còn chứa đoạn văn khác lồng nhau (vd: hộp văn bản nổi/text box gắn trong đoạn) —
+// nếu chỉ tìm "</w:p>" đầu tiên sẽ bắt nhầm thẻ đóng của đoạn văn LỒNG BÊN TRONG.
+function findParagraphEnd(xml, openTagEndIdx){
+  const openRe = /<w:p(?:\s[^>]*)?>/g;
+  let depth = 1;
+  let pos = openTagEndIdx;
+  while (depth > 0) {
+    openRe.lastIndex = pos;
+    const nextOpen = openRe.exec(xml);
+    const nextClose = xml.indexOf("</w:p>", pos);
+    if (nextClose === -1) return xml.length;
+    if (nextOpen && nextOpen.index < nextClose) {
+      depth++;
+      pos = nextOpen.index + nextOpen[0].length;
+    } else {
+      depth--;
+      pos = nextClose + "</w:p>".length;
+    }
+  }
+  return pos;
+}
+function splitParagraphs(xml){
+  const openRe = /<w:p(?:\s[^>]*)?>/g;
+  const out = [];
+  let m;
+  while ((m = openRe.exec(xml)) !== null) {
+    const end = findParagraphEnd(xml, openRe.lastIndex);
+    out.push(xml.slice(m.index, end));
+    openRe.lastIndex = end;
+  }
+  return out;
+}
+// Chữ thuộc trực tiếp đoạn văn — KHÔNG tính chữ nằm trong hình vẽ/hộp văn bản nổi (w:drawing / w:pict)
+// gắn kèm đoạn văn đó, để tránh dính chữ của hộp văn bản vào đoạn văn đang chứa nó.
+function directTextOf(fragment){
+  const stripped = fragment
+    .replace(/<w:drawing>[\s\S]*?<\/w:drawing>/g, "")
+    .replace(/<w:pict>[\s\S]*?<\/w:pict>/g, "");
+  const ts = stripped.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || [];
+  return ts.map(t => t.replace(/<w:t[^>]*>/, "").replace("</w:t>", "")).join("");
+}
+// Chữ nằm trong hộp văn bản nổi gắn kèm đoạn văn (nếu có) — chỉ lấy bản chính (mc:Choice),
+// bỏ qua bản dự phòng (mc:Fallback) vì đó là 2 cách trình bày CÙNG 1 nội dung, chọn 1 mà thôi.
+function drawingTextsOf(fragment){
+  const noFallback = fragment.replace(/<mc:Fallback>[\s\S]*?<\/mc:Fallback>/g, "");
+  const boxes = noFallback.match(/<w:txbxContent>[\s\S]*?<\/w:txbxContent>/g) || [];
+  return boxes.map(box => {
+    const ts = box.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || [];
+    return ts.map(t => t.replace(/<w:t[^>]*>/, "").replace("</w:t>", "")).join("");
+  }).map(s => s.trim()).filter(Boolean);
+}
+function realRunsOf(fragment){
+  const stripped = fragment
+    .replace(/<w:drawing>[\s\S]*?<\/w:drawing>/g, "")
+    .replace(/<w:pict>[\s\S]*?<\/w:pict>/g, "");
+  const runs = stripped.match(/<w:r>[\s\S]*?<\/w:r>/g) || [];
+  return runs.filter(r => /<w:t[^>]*>[^<]+<\/w:t>/.test(r));
+}
+function isBoldXml(fragment){
+  const runs = realRunsOf(fragment);
+  if (!runs.length) return false;
+  return runs.every(r => /<w:rPr>[\s\S]*?<w:b\/>/.test(r) && !/<w:b\s+w:val="(0|false)"\/>/.test(r));
+}
+function isItalicXml(fragment){
+  const runs = realRunsOf(fragment);
+  if (!runs.length) return false;
+  return runs.every(r => /<w:rPr>[\s\S]*?<w:i\/>/.test(r) && !/<w:i\s+w:val="(0|false)"\/>/.test(r));
+}
+function alignOfXml(pXml){
+  const m = pXml.match(/<w:jc w:val="([^"]+)"/);
+  return m ? m[1] : null;
+}
+function renderParagraphXml(pXml){
+  let out = "";
+  const mainText = directTextOf(pXml).trim();
+  if (mainText) {
+    let t = escapeHtmlPrev(mainText);
+    if (isBoldXml(pXml)) t = "<b>" + t + "</b>";
+    if (isItalicXml(pXml)) t = "<i>" + t + "</i>";
+    const a = alignOfXml(pXml);
+    const style = a === "center" ? ' style="text-align:center"' : "";
+    out += `<p${style}>${t}</p>`;
+  }
+  drawingTextsOf(pXml).forEach(dt => { out += `<p><b>${escapeHtmlPrev(dt)}</b></p>`; });
+  return out;
+}
+function shadeOfXml(tcXml){
+  const m = tcXml.match(/<w:shd[^>]*w:fill="([^"]+)"/);
+  return (m && m[1] !== "auto") ? m[1] : null;
+}
+function splitTopLevel(xml, openTagRe, closeTag){
+  // openTagRe: regex khớp thẻ mở (CÓ THỂ có thuộc tính, vd <w:tr w14:paraId="...">) — không dùng so khớp
+  // chuỗi cứng vì file Word thật thường kèm thuộc tính (rsid, paraId...) trên các thẻ.
+  const blocks = [];
+  let m;
+  while ((m = openTagRe.exec(xml)) !== null) {
+    const end = xml.indexOf(closeTag, openTagRe.lastIndex);
+    if (end === -1) break;
+    blocks.push(xml.slice(m.index, end + closeTag.length));
+    openTagRe.lastIndex = end + closeTag.length;
+  }
+  return blocks;
+}
+function renderTableXml(tblXml){
+  const rows = splitTopLevel(tblXml, /<w:tr(?:\s[^>]*)?>/g, "</w:tr>").map(trXml => {
+    const cells = splitTopLevel(trXml, /<w:tc(?:\s[^>]*)?>/g, "</w:tc>").map(tcXml => {
+      const bg = shadeOfXml(tcXml);
+      const style = bg ? ` style="background:#${bg}"` : "";
+      const paragraphs = splitParagraphs(tcXml).map(renderParagraphXml).join("");
+      return `<td${style}>${paragraphs || "&nbsp;"}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+  return `<table>${rows}</table>`;
+}
+function ooxmlBodyToHtml(xml){
+  const bodyMatch = xml.match(/<w:body>([\s\S]*?)<\/w:body>/);
+  if (!bodyMatch) return "<p>(Không đọc được nội dung)</p>";
+  let body = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/g, "");
+
+  const blockOpenRe = /<w:tbl(?:\s[^>]*)?>|<w:p(?:\s[^>]*)?>/g;
+  const out = [];
+  let m;
+  while ((m = blockOpenRe.exec(body)) !== null) {
+    if (m[0].startsWith("<w:tbl")) {
+      const tblEnd = body.indexOf("</w:tbl>", m.index) + "</w:tbl>".length;
+      out.push(renderTableXml(body.slice(m.index, tblEnd)));
+      blockOpenRe.lastIndex = tblEnd;
+    } else {
+      const pEnd = findParagraphEnd(body, blockOpenRe.lastIndex);
+      out.push(renderParagraphXml(body.slice(m.index, pEnd)));
+      blockOpenRe.lastIndex = pEnd;
+    }
+  }
+  return out.join("");
+}
 async function renderPreviewFromBlob(blob){
   const arrayBuffer = await blob.arrayBuffer();
-  const result = await mammoth.convertToHtml({ arrayBuffer });
-  return `<div style="font-family:Verdana,Arial,sans-serif;font-size:13px;line-height:1.5;">${result.value}</div>`;
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const xml = await zip.file("word/document.xml").async("string");
+  const html = ooxmlBodyToHtml(xml);
+  return `<div style="font-family:Verdana,Arial,sans-serif;font-size:13px;line-height:1.6;color:#000;">${html}</div>`;
 }
 
 // ================= Form logic =================
@@ -3575,20 +3732,26 @@ updateSoHopDongPreview();
 // ================= Step-wizard (chỉ áp dụng trên màn hình nhỏ — desktop hiện toàn bộ 1 lần) =================
 let currentStep = 1;
 function isMobileView(){ return window.innerWidth < 900; }
+function updateStepVisibility(){
+  document.querySelectorAll('.step-panel').forEach(p=>{
+    p.style.display = isMobileView() ? (Number(p.dataset.step) === currentStep ? "" : "none") : "";
+  });
+  document.getElementById('cwBack').style.display = currentStep === 1 ? "none" : "";
+  document.getElementById('cwFill').style.display = currentStep === 1 ? "" : "none";
+  document.getElementById('cwNext').style.display = currentStep === 3 ? "none" : "";
+}
 function showStep(n){
   currentStep = n;
-  document.querySelectorAll('.step-panel').forEach(p=>{
-    p.style.display = isMobileView() ? (Number(p.dataset.step) === n ? "" : "none") : "";
-  });
-  document.getElementById('cwBack').style.display = n === 1 ? "none" : "";
-  document.getElementById('cwFill').style.display = n === 1 ? "" : "none";
-  document.getElementById('cwNext').style.display = n === 3 ? "none" : "";
+  updateStepVisibility();
   if (isMobileView()) window.scrollTo({ top: 0, behavior: "smooth" });
 }
 document.getElementById('cwNext').addEventListener('click', ()=>{ if (currentStep < 3) showStep(currentStep + 1); });
 document.getElementById('cwBack').addEventListener('click', ()=>{ if (currentStep > 1) showStep(currentStep - 1); });
 document.getElementById('cwFill').addEventListener('click', ()=>{ document.getElementById('btnFill').click(); });
-window.addEventListener('resize', ()=> showStep(currentStep));
+// Chỉ cập nhật lại trạng thái ẩn/hiện khi đổi kích thước màn hình — KHÔNG cuộn trang,
+// vì trên di động, bàn phím ảo bật/tắt cũng làm trình duyệt bắn sự kiện "resize",
+// nếu cuộn theo sẽ gây giật màn hình mỗi khi người dùng chạm vào 1 ô nhập.
+window.addEventListener('resize', updateStepVisibility);
 showStep(1);
 
 document.getElementById('btnPreview').addEventListener('click', async ()=>{
