@@ -654,7 +654,7 @@ section.card h2 .n{
   }#contractAppRoot #previewHeader button{
     width:32px; height:32px; border-radius:50%; background:var(--cf-bg); color:var(--cf-text);
     font-size:15px; padding:0; flex-shrink:0;
-  }#contractAppRoot #previewBody{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; background:#f0f1f3;}#contractAppRoot #previewBody > div{background:#fff; padding:24px 20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1); max-width:100%; overflow-x:auto;}#contractAppRoot #previewBody table{width:100% !important; max-width:100%; table-layout:fixed; border-collapse:collapse;}#contractAppRoot #previewBody td, #contractAppRoot #previewBody th{word-break:break-word; overflow-wrap:break-word; padding:4px 6px; vertical-align:top;}#contractAppRoot #previewBody img{max-width:100%; height:auto;}#contractAppRoot #previewBody a{word-break:break-all;}#contractAppRoot #previewBody p{margin:0 0 8px; word-break:break-word;}#contractAppRoot #previewFooter{padding:12px 18px; border-top:1px solid var(--cf-border); flex-shrink:0;}#contractAppRoot #previewFooter button{background:var(--cf-primary);color:#fff;}
+  }#contractAppRoot #previewBody{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; background:#f0f1f3;}#contractAppRoot #previewBody > div{background:#fff; padding:24px 20px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1); max-width:100%; overflow-x:auto;}#contractAppRoot #previewBody table{width:100% !important; max-width:100%; table-layout:fixed; border-collapse:collapse;}#contractAppRoot #previewBody td, #contractAppRoot #previewBody th{word-break:break-word; overflow-wrap:break-word; padding:6px 8px; vertical-align:top; border:1px solid #d5d5d5;}#contractAppRoot #previewBody img{max-width:100%; height:auto;}#contractAppRoot #previewBody a{word-break:break-all;}#contractAppRoot #previewBody p{margin:0 0 8px; word-break:break-word;}#contractAppRoot #previewFooter{padding:12px 18px; border-top:1px solid var(--cf-border); flex-shrink:0;}#contractAppRoot #previewFooter button{background:var(--cf-primary);color:#fff;}
 
 #contractAppRoot #btnFill{ display:none; }
 @media (min-width:900px){
@@ -1038,11 +1038,11 @@ section.card h2 .n{
     <h2>Thông tin hợp đồng</h2>
     <div class="grid">
       <div class="field"><label for="so_hd_duoc_cap">Số HĐ được cấp</label><input id="so_hd_duoc_cap" placeholder="vd: 015"></div>
-      <div class="field"><label for="chuyen_vien_tu_van">Chuyên viên tư vấn</label><select id="chuyen_vien_tu_van" class="tuvan-select"></select></div>
+      <div class="field"><label for="ten_tai_khoan">Tên tài khoản</label><input id="ten_tai_khoan" placeholder="vd: minhanhshop"></div>
     </div>
     <div class="grid full">
       <div class="field"><label for="ngay_ky_date">Ngày ký hợp đồng</label><input id="ngay_ky_date" type="date"></div>
-      <div class="field"><label for="ten_tai_khoan">Tên tài khoản</label><input id="ten_tai_khoan" placeholder="vd: minhanhshop (....kiotviet.vn)"></div>
+      <div class="field"><label for="chuyen_vien_tu_van">Chuyên viên tư vấn</label><select id="chuyen_vien_tu_van" class="tuvan-select"></select></div>
     </div>
     <div class="totalbar">
       <span class="lbl">Số hợp đồng tự sinh</span><b id="soHopDongPreview">DSHN1/.../.../..../KIOTVIET-...</b>
@@ -1058,11 +1058,11 @@ section.card h2 .n{
       <div class="field"><label for="ngay_ky_phu_luc_date">Ngày ký phụ lục</label><input id="ngay_ky_phu_luc_date" type="date"></div>
       <div class="field"><label for="ngay_hieu_luc_date">Ngày hiệu lực</label><input id="ngay_hieu_luc_date" type="date"></div>
     </div>
-    <div class="grid">
-      <div class="field"><label for="chuyen_vien_tu_van_pl">Chuyên viên tư vấn</label><select id="chuyen_vien_tu_van_pl" class="tuvan-select"></select></div>
-      <div class="field"><label for="tai_khoan_cu">Tài khoản cũ</label><input id="tai_khoan_cu" placeholder="vd: minhanhshop (.kiotviet.com)"></div>
-    </div>
     <div class="grid full">
+      <div class="field"><label for="chuyen_vien_tu_van_pl">Chuyên viên tư vấn</label><select id="chuyen_vien_tu_van_pl" class="tuvan-select"></select></div>
+    </div>
+    <div class="grid">
+      <div class="field"><label for="tai_khoan_cu">Tài khoản cũ</label><input id="tai_khoan_cu" placeholder="vd: minhanhshop (.kiotviet.com)"></div>
       <div class="field"><label for="tai_khoan_moi">Tài khoản mới</label><input id="tai_khoan_moi" placeholder="vd: minhanhshop2 (.kiotviet.com)"></div>
     </div>
     <div class="totalbar">
@@ -3620,21 +3620,47 @@ function renderTableXml(tblXml){
 function ooxmlBodyToHtml(xml){
   const bodyMatch = xml.match(/<w:body>([\s\S]*?)<\/w:body>/);
   if (!bodyMatch) return "<p>(Không đọc được nội dung)</p>";
-  let body = bodyMatch[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/g, "");
+  let body = bodyMatch[1];
 
   const blockOpenRe = /<w:tbl(?:\s[^>]*)?>|<w:p(?:\s[^>]*)?>/g;
   const out = [];
+  // Đoạn văn thường tích lũy tạm — nếu sau đó gặp điểm ngắt cột thì toàn bộ chỗ này
+  // sẽ trở thành "cột trái"; nếu không thì được đẩy ra bình thường (flush) khi gặp mốc tiếp theo.
+  let pending = [];
+  let colBuf = null; // {left:[...], right:[...]} trong lúc đang ở giữa vùng 2 cột
+  const flushPending = () => { out.push(...pending); pending = []; };
   let m;
   while ((m = blockOpenRe.exec(body)) !== null) {
     if (m[0].startsWith("<w:tbl")) {
+      flushPending();
       const tblEnd = body.indexOf("</w:tbl>", m.index) + "</w:tbl>".length;
       out.push(renderTableXml(body.slice(m.index, tblEnd)));
       blockOpenRe.lastIndex = tblEnd;
     } else {
       const pEnd = findParagraphEnd(body, blockOpenRe.lastIndex);
-      out.push(renderParagraphXml(body.slice(m.index, pEnd)));
+      const pXml = body.slice(m.index, pEnd);
+      const breakRe = /<w:br\s+w:type="column"\s*\/>/;
+
+      if (!colBuf && breakRe.test(pXml)) {
+        const [beforeBreak, afterBreak] = pXml.split(breakRe);
+        colBuf = { left: [...pending, renderParagraphXml(beforeBreak + "</w:p>")], right: [] };
+        pending = [];
+        if (afterBreak && afterBreak.trim()) colBuf.right.push(renderParagraphXml("<w:p>" + afterBreak));
+      } else if (colBuf) {
+        colBuf.right.push(renderParagraphXml(pXml));
+        if (/<w:sectPr/.test(pXml)) {
+          out.push(`<div style="display:flex;gap:16px;align-items:flex-start;"><div style="flex:1;min-width:0;">${colBuf.left.join("")}</div><div style="flex:1;min-width:0;">${colBuf.right.join("")}</div></div>`);
+          colBuf = null;
+        }
+      } else {
+        pending.push(renderParagraphXml(pXml));
+      }
       blockOpenRe.lastIndex = pEnd;
     }
+  }
+  flushPending();
+  if (colBuf) { // phòng trường hợp không gặp điểm đóng — vẫn xuất ra để không mất nội dung
+    out.push(`<div style="display:flex;gap:16px;"><div style="flex:1;">${colBuf.left.join("")}</div><div style="flex:1;">${colBuf.right.join("")}</div></div>`);
   }
   return out.join("");
 }
@@ -3807,7 +3833,8 @@ document.getElementById('btnExport').addEventListener('click', async ()=>{
     const a = document.createElement('a');
     a.href = url; a.download = `${prefix}_${safeName || 'KiotViet'}.docx`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000); // đợi trình duyệt xử lý xong tải file rồi mới giải phóng URL,
+                                                      // thu hồi ngay lập tức có thể làm mất tên file dù nội dung vẫn tải đúng
     const t = document.getElementById('toast'); t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'), 1800);
   } catch(e){
