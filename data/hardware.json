@@ -7,28 +7,24 @@
           "name": "Máy bán hàng D10 Pro",
           "price": 5680000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy POS bán hàng model D2-Single",
           "price": 5990000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy POS bán hàng cầm tay model KV88",
           "price": 4990000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy bán hàng D68 Dual",
           "price": 6990000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         }
       ]
@@ -40,42 +36,36 @@
           "name": "Máy in mã vạch 365B",
           "price": 1400000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy in hóa đơn KV804",
           "price": 1400000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy in hóa đơn TP80NL",
           "price": 1490000,
           "warranty": "Liên hệ",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy in hóa đơn bar-bếp KV838",
           "price": 1400000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy in hóa đơn cầm tay KV500",
           "price": 599000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy in hóa đơn để bàn KV505",
           "price": 599000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         }
       ]
@@ -87,14 +77,12 @@
           "name": "Máy quét mã vạch XL-2302",
           "price": 1600000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy quét mã vạch XL-6500A",
           "price": 600000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         }
       ]
@@ -106,69 +94,59 @@
           "name": "Màn hình hiển thị QR - KV99",
           "price": 490000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Loa thông báo thanh toán QR động KV66",
           "price": 540000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Máy chấm công N308",
           "price": 1200000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Khay đựng tiền KV405",
           "price": 920000,
           "warranty": "12 tháng",
-          "unit": "",
           "image": ""
         },
         {
           "name": "Giấy in nhiệt (hóa đơn) K80*45",
           "price": 325000,
-          "warranty": "",
           "unit": "Thùng 50 cuộn",
           "image": ""
         },
         {
           "name": "Giấy in nhiệt (hóa đơn) K80*80",
           "price": 25000,
-          "warranty": "",
           "unit": "Cuộn",
           "image": ""
         },
         {
           "name": "Giấy in mã vạch (khổ 2 tem)",
           "price": 50000,
-          "warranty": "",
           "unit": "Cuộn",
           "image": ""
         },
         {
           "name": "Giấy in tem (khổ 50*30)",
           "price": 33000,
-          "warranty": "",
           "unit": "Cuộn",
           "image": ""
         },
         {
           "name": "Giấy in decal nhiệt 100x150mm (500 tem)",
           "price": 95000,
-          "warranty": "",
           "unit": "Cuộn",
           "image": ""
         },
         {
           "name": "Giấy in decal nhiệt 100x150mm (350 tem)",
           "price": 80000,
-          "warranty": "",
           "unit": "Cuộn",
           "image": ""
         }
