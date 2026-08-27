@@ -1596,7 +1596,12 @@ const PROMO_NGANH = {
     ],
   },
 };
-PROMO_NGANH.luutru = PROMO_NGANH.suckhoe; // Booking gộp chung Sức khỏe + Lưu trú, cùng 1 bảng giá
+// Booking (luutru) khởi tạo bằng đúng giá trị mặc định của Salon (suckhoe) làm điểm xuất phát an toàn —
+// nhưng là 1 object ĐỘC LẬP (deep clone, không share reference) để từ nay có thể chỉnh giá riêng cho từng
+// ngành qua CMS (data/promotions.json) mà không ảnh hưởng lẫn nhau. Trước đây 2 ngành này dùng chung 1
+// object (PROMO_NGANH.luutru = PROMO_NGANH.suckhoe), sửa 1 bên sẽ tự động đổi luôn bên kia — đây là điều
+// đã được tách ra theo yêu cầu (bóc tách bảng giá Salon/Booking, tháng 9).
+PROMO_NGANH.luutru = JSON.parse(JSON.stringify(PROMO_NGANH.suckhoe));
 
 const CUST_TYPE_OPTIONS = [
   {key:"canhan", label:"Cá nhân", fullLabel:"Cá nhân", greet:"Quý Khách hàng"},
@@ -3261,6 +3266,47 @@ function applyHardwareConfig(cfg){
   }
 }
 
+// Áp dụng khuyến mãi theo ngành từ data/promotions.json (do trang quản trị /admin ghi ra).
+// CMS lưu mỗi mức năm dưới dạng object có khoá "nam1"/"nam2"/"nam3"/"nam5" (đúng theo config.yml),
+// còn PROMO_NGANH trong JS dùng mảng {soNam, giam, thangTang, hddtNam, qua, pinnedGifts} — hàm này
+// chuyển đổi qua lại giữa 2 hình dạng dữ liệu, đồng thời gộp 3 field chọn quà rời (qua1/qua2/qua3,
+// giá trị "none" = bỏ trống) thành mảng pinnedGifts mà code render đang dùng.
+// Quan trọng: 4 ngành (banle, anuong, suckhoe = Salon, luutru = Booking) từ nay là 4 khối ĐỘC LẬP trong
+// CMS — sửa giá Salon sẽ không còn tự động đổi giá Booking (và ngược lại) như cơ chế share-reference cũ.
+function applyPromotionsConfig(cfg){
+  try {
+    if (typeof cfg.active === 'boolean') PROMO_NGANH.active = cfg.active;
+    if (cfg.ten) PROMO_NGANH.ten = cfg.ten;
+    if (cfg.tuNgay) PROMO_NGANH.tuNgay = cfg.tuNgay;
+    if (cfg.denNgay) PROMO_NGANH.denNgay = cfg.denNgay;
+
+    ['banle','anuong','suckhoe','luutru'].forEach(nganh => {
+      const nganhCfg = cfg[nganh];
+      const nganhDefault = PROMO_NGANH[nganh];
+      if (!nganhCfg || !nganhDefault) return;
+      if (typeof nganhCfg.khongCombo === 'boolean') nganhDefault.khongCombo = nganhCfg.khongCombo;
+
+      ['hotro','chuyennghiep','caocap'].forEach(goi => {
+        const goiCfg = nganhCfg[goi];
+        const rows = nganhDefault[goi];
+        if (!goiCfg || !Array.isArray(rows)) return;
+        rows.forEach(row => {
+          const namCfg = goiCfg['nam' + row.soNam];
+          if (!namCfg) return;
+          if (namCfg.giam != null) row.giam = namCfg.giam;
+          if (namCfg.thangTang != null) row.thangTang = namCfg.thangTang;
+          if (namCfg.hddtNam != null) row.hddtNam = namCfg.hddtNam;
+          if (namCfg.qua != null) row.qua = namCfg.qua;
+          const pinned = [namCfg.qua1, namCfg.qua2, namCfg.qua3].filter(v => v && v !== 'none');
+          if (pinned.length) row.pinnedGifts = pinned;
+        });
+      });
+    });
+  } catch(e){
+    console.warn('Lỗi áp dụng data/promotions.json, dùng khuyến mãi mặc định đã nhúng sẵn:', e);
+  }
+}
+
 const pvLogoImgEl = document.getElementById('pv_logoImg');
 pvLogoImgEl.onerror = function(){
   this.onerror = null; // tránh lặp vô hạn nếu fallback cũng lỗi
@@ -3294,6 +3340,15 @@ fetch('data/hardware.json', {cache:'no-store'})
   .then(cfg => { applyHardwareConfig(cfg); renderAll(); })
   .catch(err => {
     console.warn('Dùng danh mục thiết bị mặc định đã nhúng sẵn (không tải được data/hardware.json):', err);
+  });
+
+// Khuyến mãi theo ngành (Salon/Booking tách riêng) do CMS quản trị qua data/promotions.json — fetch riêng,
+// độc lập với pricing.json/hardware.json; lỗi/thiếu file thì giữ nguyên PROMO_NGANH mặc định đã nhúng sẵn.
+fetch('data/promotions.json', {cache:'no-store'})
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('Không tải được data/promotions.json')))
+  .then(cfg => { applyPromotionsConfig(cfg); renderAll(); })
+  .catch(err => {
+    console.warn('Dùng khuyến mãi mặc định đã nhúng sẵn (không tải được data/promotions.json):', err);
   });
 </script>
 
