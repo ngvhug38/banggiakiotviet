@@ -46,6 +46,9 @@
     suckhoe: { icon: '💇', label: 'Sức khỏe / Salon' },
     luutru: { icon: '🏨', label: 'Lưu trú / Booking' },
   };
+  // Khoá ngành trong data/pricing.json (đúng theo admin/config.yml hiện tại) khác với khoá
+  // hiển thị ở trên (dùng chung với promotions.json) — ánh xạ để tái sử dụng INDUSTRY_META.
+  var PRICING_INDUSTRY_MAP = { retail: 'banle', fnb: 'anuong', salon: 'suckhoe', booking: 'luutru' };
 
   // ---------------------------------------------------------------------------
   // 1) PREVIEW CHO "gia" (data/pricing.json) — file name trong config.yml là "pricing"
@@ -102,13 +105,39 @@
         );
       }
 
-      var hddtRows = (data.hoaDonDienTuMuaThem || []).map(function (r, i) {
+      var addons = data.addons || {};
+      var hddtRows = (addons.hoaDonDienTuMuaThem || []).map(function (r, i) {
         return h(
           'tr',
           { key: i },
-          h('td', {}, '+' + r.soLuong.toLocaleString('vi-VN') + ' số'),
+          h('td', {}, '+' + Number(r.soLuong || 0).toLocaleString('vi-VN') + ' số'),
           h('td', { className: 'kv-num' }, fmt(r.gia)),
           h('td', { className: 'kv-num' }, r.giaKhuyenMai ? fmt(r.giaKhuyenMai) : h('span', { className: 'kv-dim' }, '—'))
+        );
+      });
+
+      // data/pricing.json (đúng theo admin/config.yml hiện tại) chia giá theo 4 ngành:
+      // retail/fnb/salon/booking, mỗi ngành có 3 gói hotro/chuyennghiep/caocap.
+      var industryBlocks = ['retail', 'fnb', 'salon', 'booking'].map(function (pKey) {
+        var ind = data[pKey];
+        if (!ind) return null;
+        var meta = INDUSTRY_META[PRICING_INDUSTRY_MAP[pKey]] || { icon: '📦', label: pKey };
+        return h(
+          'div',
+          { key: pKey, style: { marginBottom: '24px' } },
+          h(
+            'div',
+            { className: 'kv-industry-head' },
+            h('span', { className: 'kv-industry-icon' }, meta.icon),
+            h('span', {}, meta.label)
+          ),
+          h(
+            'div',
+            { className: 'kv-pkggrid' },
+            packageCard('hotro', 'Gói Hỗ trợ', '🌱', ind.hotro),
+            packageCard('chuyennghiep', 'Gói Chuyên Nghiệp', '🚀', ind.chuyennghiep),
+            packageCard('caocap', 'Gói Cao Cấp', '👑', ind.caocap)
+          )
         );
       });
 
@@ -119,15 +148,9 @@
           'div',
           { className: 'kv-header' },
           logoSrc ? h('img', { className: 'kv-logo', src: logoSrc }) : null,
-          h('div', {}, h('h1', {}, '💰 Bảng giá phần mềm KiotViet'), h('div', { className: 'kv-dim' }, 'Xem trước đúng bố cục sẽ hiển thị cho khách hàng'))
+          h('div', {}, h('h1', {}, '💰 Bảng giá phần mềm KiotViet'), h('div', { className: 'kv-dim' }, 'Xem trước đúng bố cục sẽ hiển thị cho khách hàng — theo từng ngành'))
         ),
-        h(
-          'div',
-          { className: 'kv-pkggrid' },
-          packageCard('hotro', 'Gói Hỗ trợ', '🌱', data.goiHoTro),
-          packageCard('chuyennghiep', 'Gói Chuyên Nghiệp', '🚀', data.goiChuyenNghiep),
-          packageCard('caocap', 'Gói Cao Cấp', '👑', data.goiCaoCap)
-        ),
+        industryBlocks,
         hddtRows.length
           ? h(
               'div',
@@ -144,7 +167,7 @@
       );
     },
   });
-  CMS.registerPreviewTemplate('pricing', PricingPreview);
+  CMS.registerPreviewTemplate('pricing_all_industries', PricingPreview);
 
   // ---------------------------------------------------------------------------
   // 2) PREVIEW CHO "thietbi" (data/hardware.json) — file name là "hardware"
