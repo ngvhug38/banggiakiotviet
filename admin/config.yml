@@ -5466,3 +5466,17 @@ collections:
               value: 365b
             - label: 01 Máy quét mã vạch XL-6500A
               value: xl6500a
+- name: nhansu
+  label: 👤 Nhân viên tư vấn
+  files:
+  - name: nhanvien
+    label: Danh sách chuyên viên tư vấn (data/nhanvien.json)
+    file: data/nhanvien.json
+    fields:
+    - label: 🧑‍💼 Danh sách tên chuyên viên tư vấn
+      name: danhSach
+      widget: list
+      allow_add: true
+      hint: Mỗi dòng là 1 chuyên viên tư vấn (chuỗi văn bản thuần, không phải object)
+        — giữ đúng cấu trúc mảng string hiện có trong data/nhanvien.json, hiển thị
+        cho khách chọn trên tool báo giá.
