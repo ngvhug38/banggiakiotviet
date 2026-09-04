@@ -2638,7 +2638,7 @@ function renderCustInfo(){
     const chip = document.createElement('div');
     chip.className = 'radio-chip' + (state.industry===key ? ' active' : '');
     chip.textContent = INDUSTRY_RADIO_LABELS[key];
-    chip.onclick = ()=>{ state.industry = key; renderAll(); };
+    chip.onclick = ()=>{ state.industry = key; if (window.__rawPricingCfg) applyPricingConfig(window.__rawPricingCfg); renderAll(); };
     indWrap.appendChild(chip);
   });
 }
@@ -3198,19 +3198,24 @@ function doExportPdf(){
 
 // Áp dụng giá/chính sách từ data/pricing.json (do trang quản trị /admin ghi ra) vào dữ liệu đang chạy.
 // Nếu thiếu trường nào hoặc lỗi định dạng, giữ nguyên giá mặc định đã nhúng sẵn — không bao giờ làm vỡ trang.
+const NGANH_TO_JSON_KEY = {banle:'retail', anuong:'fnb', suckhoe:'salon', luutru:'booking'};
+
 function applyPricingConfig(cfg){
   try {
-    if (cfg.goiHoTro){
-      const g = cfg.goiHoTro;
+    const jsonKey = NGANH_TO_JSON_KEY[state.industry] || 'retail';
+    const industryCfg = cfg[jsonKey];
+    if (!industryCfg) return;
+
+    if (industryCfg.hotro){
+      const g = industryCfg.hotro;
       if (g.giaThangChiNhanh1!=null) PACKAGES.hotro.monthly.cn1 = g.giaThangChiNhanh1;
       (g.cacMucNam||[]).forEach(m=>{
         const d = PACKAGES.hotro.durations[m.soNam];
         if (d){ d.cn1=m.giaTron; d.giftHoaDon=m.hoaDonTang; d.voucher.money=m.voucherToiDaTien; d.voucher.months=m.voucherToiDaThang||null; }
       });
     }
-    ['chuyennghiep','caocap'].forEach((key, i)=>{
-      const cfgKey = i===0 ? 'goiChuyenNghiep' : 'goiCaoCap';
-      const g = cfg[cfgKey];
+    ['chuyennghiep','caocap'].forEach(key=>{
+      const g = industryCfg[key];
       if (!g) return;
       if (g.giaThangChiNhanh1!=null) PACKAGES[key].monthly.cn1 = g.giaThangChiNhanh1;
       if (g.giaThangChiNhanh2!=null) PACKAGES[key].monthly.cn2 = g.giaThangChiNhanh2;
@@ -3220,24 +3225,26 @@ function applyPricingConfig(cfg){
         if (d){ d.cn1=m.giaChiNhanh1; d.cn2=m.giaChiNhanh2; d.giftHoaDon=m.hoaDonTang; d.voucher.money=m.voucherToiDaTien; d.voucher.months=m.voucherToiDaThang||null; }
       });
     });
-    if (Array.isArray(cfg.hoaDonDienTuMuaThem) && cfg.hoaDonDienTuMuaThem.length){
+
+    const addons = cfg.addons || {};
+    if (Array.isArray(addons.hoaDonDienTuMuaThem) && addons.hoaDonDienTuMuaThem.length){
       HOADON_TIERS.length = 0;
-      cfg.hoaDonDienTuMuaThem.forEach(t=> HOADON_TIERS.push({qty:t.soLuong, price:t.gia}));
+      addons.hoaDonDienTuMuaThem.forEach(t=> HOADON_TIERS.push({qty:t.soLuong, price:t.gia, promoPrice:t.giaKhuyenMai}));
     }
-    if (cfg.comboPos){
-      if (cfg.comboPos.nam1) COMBO_TABLE[1] = cfg.comboPos.nam1;
-      if (cfg.comboPos.nam2) COMBO_TABLE[2] = cfg.comboPos.nam2;
-      if (cfg.comboPos.nam3) COMBO_TABLE[3] = cfg.comboPos.nam3;
+    if (addons.comboPos){
+      if (addons.comboPos.nam1) COMBO_TABLE[1] = addons.comboPos.nam1;
+      if (addons.comboPos.nam2) COMBO_TABLE[2] = addons.comboPos.nam2;
+      if (addons.comboPos.nam3) COMBO_TABLE[3] = addons.comboPos.nam3;
     }
-    if (Array.isArray(cfg.comboChiNhanhChuyenNghiep)){
+    if (Array.isArray(addons.comboChiNhanhChuyenNghiep)){
       COMBO_BRANCH_TIERS.chuyennghiep.forEach((tier, idx)=>{
-        const src = cfg.comboChiNhanhChuyenNghiep[idx];
+        const src = addons.comboChiNhanhChuyenNghiep[idx];
         if (src) tier.prices = {1:src.gia1nam, 2:src.gia2nam, 3:src.gia3nam, 5:src.gia5nam};
       });
     }
-    if (Array.isArray(cfg.comboChiNhanhCaoCap)){
+    if (Array.isArray(addons.comboChiNhanhCaoCap)){
       COMBO_BRANCH_TIERS.caocap.forEach((tier, idx)=>{
-        const src = cfg.comboChiNhanhCaoCap[idx];
+        const src = addons.comboChiNhanhCaoCap[idx];
         if (src) tier.prices = {1:src.gia1nam, 2:src.gia2nam, 3:src.gia3nam, 5:src.gia5nam};
       });
     }
@@ -3338,7 +3345,7 @@ function finishSync(){
 
 fetch('data/pricing.json', {cache:'no-store'})
   .then(r => r.ok ? r.json() : Promise.reject(new Error('Không tải được data/pricing.json')))
-  .then(cfg => { applyPricingConfig(cfg); renderAll(); finishSync(); })
+  .then(cfg => { window.__rawPricingCfg = cfg; applyPricingConfig(cfg); renderAll(); finishSync(); })
   .catch(err => {
     console.warn('Dùng giá mặc định đã nhúng sẵn (không tải được data/pricing.json):', err);
     renderAll();
