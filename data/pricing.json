@@ -8,7 +8,7 @@
           "soNam": 1,
           "giaTron": 3240000,
           "hoaDonTang": 5000,
-          "voucherToiDaTien": 500000,
+          "voucherToiDaTien": 499997,
           "voucherToiDaThang": null,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
@@ -415,7 +415,7 @@
           "giaTron": 2640000,
           "hoaDonTang": 5000,
           "voucherToiDaTien": 500000,
-          "voucherToiDaThang": null,
+          "voucherToiDaThang": 3,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
         {
@@ -423,7 +423,7 @@
           "giaTron": 5280000,
           "hoaDonTang": 5000,
           "voucherToiDaTien": 500000,
-          "voucherToiDaThang": 3,
+          "voucherToiDaThang": 5,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
         {
@@ -431,22 +431,22 @@
           "giaTron": 7920000,
           "hoaDonTang": 5000,
           "voucherToiDaTien": 500000,
-          "voucherToiDaThang": 3,
+          "voucherToiDaThang": 6,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
         {
           "soNam": 5,
-          "giaTron": 13200000,
+          "giaTron": 11000000,
           "hoaDonTang": 5000,
           "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": null,
+          "voucherToiDaThang": 6,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         }
       ]
     },
     "chuyennghiep": {
       "giaThangChiNhanh1": 490000,
-      "giaThangChiNhanh2": 390000,
+      "giaThangChiNhanh2": 375000,
       "giaThangMuaThemKho": {
         "nam1": 1800000,
         "nam2": 3600000,
@@ -457,44 +457,44 @@
         {
           "soNam": 1,
           "giaChiNhanh1": 5880000,
-          "giaChiNhanh2": 4680000,
+          "giaChiNhanh2": 4500000,
           "hoaDonTang": 20000,
-          "voucherToiDaTien": 800000,
-          "voucherToiDaThang": 3,
+          "voucherToiDaTien": 1000000,
+          "voucherToiDaThang": 1,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
         {
           "soNam": 2,
           "giaChiNhanh1": 11760000,
-          "giaChiNhanh2": 9360000,
+          "giaChiNhanh2": 9000000,
           "hoaDonTang": 20000,
           "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": 5,
+          "voucherToiDaThang": 6,
           "quaTangMacDinh": ""
         },
         {
           "soNam": 3,
           "giaChiNhanh1": 17640000,
-          "giaChiNhanh2": 14040000,
+          "giaChiNhanh2": 13500000,
           "hoaDonTang": 20000,
-          "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": 5,
+          "voucherToiDaTien": 1500000,
+          "voucherToiDaThang": 9,
           "quaTangMacDinh": ""
         },
         {
           "soNam": 5,
-          "giaChiNhanh1": 29400000,
-          "giaChiNhanh2": 23400000,
+          "giaChiNhanh1": 25200000,
+          "giaChiNhanh2": 22000000,
           "hoaDonTang": 20000,
-          "voucherToiDaTien": 1500000,
-          "voucherToiDaThang": 6,
+          "voucherToiDaTien": 2000000,
+          "voucherToiDaThang": 12,
           "quaTangMacDinh": ""
         }
       ]
     },
     "caocap": {
       "giaThangChiNhanh1": 990000,
-      "giaThangChiNhanh2": 790000,
+      "giaThangChiNhanh2": 750000,
       "giaThangMuaThemKho": {
         "nam1": 1800000,
         "nam2": 3600000,
@@ -505,37 +505,37 @@
         {
           "soNam": 1,
           "giaChiNhanh1": 11880000,
-          "giaChiNhanh2": 9480000,
+          "giaChiNhanh2": 9000000,
           "hoaDonTang": 50000,
-          "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": 5,
+          "voucherToiDaTien": 1500000,
+          "voucherToiDaThang": 6,
           "quaTangMacDinh": "Tặng 01 máy quét QR KV99"
         },
         {
           "soNam": 2,
           "giaChiNhanh1": 23760000,
-          "giaChiNhanh2": 18960000,
+          "giaChiNhanh2": 18000000,
           "hoaDonTang": 50000,
-          "voucherToiDaTien": 1000000,
+          "voucherToiDaTien": 2000000,
           "voucherToiDaThang": 6,
           "quaTangMacDinh": ""
         },
         {
           "soNam": 3,
           "giaChiNhanh1": 35640000,
-          "giaChiNhanh2": 28440000,
+          "giaChiNhanh2": 27000000,
           "hoaDonTang": 50000,
-          "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": 6,
+          "voucherToiDaTien": 2000000,
+          "voucherToiDaThang": 12,
           "quaTangMacDinh": ""
         },
         {
           "soNam": 5,
-          "giaChiNhanh1": 59400000,
-          "giaChiNhanh2": 47400000,
+          "giaChiNhanh1": 50900000,
+          "giaChiNhanh2": 44100000,
           "hoaDonTang": 50000,
-          "voucherToiDaTien": 1000000,
-          "voucherToiDaThang": 6,
+          "voucherToiDaTien": 3000000,
+          "voucherToiDaThang": 12,
           "quaTangMacDinh": ""
         }
       ]
