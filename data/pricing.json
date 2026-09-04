@@ -2,11 +2,11 @@
   "logoUrl": "",
   "retail": {
     "hotro": {
-      "giaThangChiNhanh1": 2700000,
+      "giaThangChiNhanh1": 270000,
       "cacMucNam": [
         {
           "soNam": 1,
-          "giaTron": 32400000,
+          "giaTron": 3240000,
           "hoaDonTang": 5000,
           "voucherToiDaTien": 499997,
           "voucherToiDaThang": null,
